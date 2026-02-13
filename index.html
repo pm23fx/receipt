@@ -18,6 +18,24 @@
       --success: #166534;
     }
 
+    body.theme-royal {
+      --brand: #1e3a8a;
+      --brand-deep: #1e40af;
+      --accent: #c0a062;
+    }
+
+    body.theme-emerald {
+      --brand: #065f46;
+      --brand-deep: #064e3b;
+      --accent: #10b981;
+    }
+
+    body.theme-midnight {
+      --brand: #1f2937;
+      --brand-deep: #111827;
+      --accent: #6b7280;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -63,6 +81,46 @@
       justify-content: center;
       flex-wrap: wrap;
     }
+
+    .theme-selector {
+      max-width: 210mm;
+      margin: 0 auto 10px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .theme-selector label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4b5563;
+    }
+
+    .theme-btn {
+      width: 34px;
+      height: 34px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-btn.active {
+      border-color: #111827;
+      box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12);
+    }
+
+    .theme-classic { background: linear-gradient(135deg, #7a1f1f 0%, #b28b3c 100%); }
+    .theme-royal { background: linear-gradient(135deg, #1e3a8a 0%, #c0a062 100%); }
+    .theme-emerald { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
+    .theme-midnight { background: linear-gradient(135deg, #1f2937 0%, #6b7280 100%); }
 
     .lang-toggle {
       display: inline-flex;
@@ -379,7 +437,7 @@
 
     @media print {
       body { background: #fff; padding: 0; }
-      .controls, .sig-tools, .lang-toggle { display: none !important; }
+      .controls, .theme-selector, .sig-tools, .lang-toggle { display: none !important; }
 
       .receipt {
         width: 190mm;
@@ -434,6 +492,14 @@
   </style>
 </head>
 <body>
+  <div class="theme-selector">
+    <label>Theme:</label>
+    <button class="theme-btn theme-classic active" onclick="changeTheme('classic', this)" title="Classic Maroon"></button>
+    <button class="theme-btn theme-royal" onclick="changeTheme('royal', this)" title="Royal Blue"></button>
+    <button class="theme-btn theme-emerald" onclick="changeTheme('emerald', this)" title="Emerald Green"></button>
+    <button class="theme-btn theme-midnight" onclick="changeTheme('midnight', this)" title="Midnight Black"></button>
+  </div>
+
   <div class="controls">
     <button class="btn btn-print" onclick="window.print()">Print Receipt</button>
     <button class="btn btn-reset" onclick="resetReceipt()">Reset</button>
@@ -579,8 +645,28 @@
     const originalReceipt = document.querySelector('.receipt').innerHTML;
     const signaturePads = {};
     let currentLanguage = 'en';
+    let currentTheme = 'classic';
     const textNodeEnglishCache = new WeakMap();
     let translationWarningShown = false;
+
+    function applyBodyTheme() {
+      document.body.classList.remove('theme-royal', 'theme-emerald', 'theme-midnight');
+      if (currentTheme !== 'classic') {
+        document.body.classList.add(`theme-${currentTheme}`);
+      }
+      if (currentLanguage === 'ar') {
+        document.body.classList.add('rtl');
+      } else {
+        document.body.classList.remove('rtl');
+      }
+    }
+
+    function changeTheme(theme, buttonEl) {
+      currentTheme = theme;
+      document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+      if (buttonEl) buttonEl.classList.add('active');
+      applyBodyTheme();
+    }
 
     function parseNumber(text) {
       return parseFloat(String(text).replace(/,/g, '').trim()) || 0;
@@ -841,10 +927,10 @@
       if (buttonEl) buttonEl.classList.add('active');
 
       if (lang === 'ar') {
-        document.body.classList.add('rtl');
+        applyBodyTheme();
         await translateWholeReceiptToArabic();
       } else {
-        document.body.classList.remove('rtl');
+        applyBodyTheme();
         restoreWholeReceiptToEnglish();
       }
     }
@@ -883,6 +969,7 @@
     }
 
     function initReceipt() {
+      applyBodyTheme();
       setDateDefault();
       setupEditablePlaceholders();
       setupSignaturePad('companySignCanvas', 'companySignUpload');
