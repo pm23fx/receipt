@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Receipt - OMO G Trading And Interior Decoration</title>
+  <style>
+    :root {
+      --bg: #f2efe9;
+      --paper: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --brand: #7a1f1f;
+      --brand-deep: #571616;
+      --accent: #b28b3c;
+      --line: #e5e7eb;
+      --soft: #faf8f4;
+      --success: #166534;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
+      background:
+        radial-gradient(circle at 10% 15%, rgba(178, 139, 60, 0.12), transparent 40%),
+        radial-gradient(circle at 88% 82%, rgba(122, 31, 31, 0.09), transparent 34%),
+        var(--bg);
+      color: var(--ink);
+      padding: 18px 0;
+    }
+
+    body.rtl {
+      direction: rtl;
+    }
+
+    body.rtl .header::after {
+      right: 0;
+      left: auto;
+    }
+
+    body.rtl .receipt-title {
+      text-align: left;
+    }
+
+    body.rtl .meta {
+      text-align: right;
+    }
+
+    body.rtl .text-right {
+      text-align: left;
+    }
+
+    .controls {
+      max-width: 210mm;
+      margin: 0 auto 12px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .lang-toggle {
+      display: inline-flex;
+      gap: 6px;
+      background: var(--soft);
+      border: 1px solid #e7decd;
+      border-radius: 999px;
+      padding: 4px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .lang-btn.active {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
+      transition: transform 0.2s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-print { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%); color: #fff; }
+    .btn-reset { background: linear-gradient(135deg, #d1ae63 0%, var(--accent) 100%); color: #fff; }
+
+    .receipt {
+      width: min(210mm, calc(100vw - 24px));
+      min-height: 297mm;
+      margin: 0 auto;
+      background: var(--paper);
+      border: 1px solid #ece7de;
+      border-radius: 14px;
+      box-shadow: 0 22px 45px rgba(24, 22, 18, 0.13);
+      padding: 11mm 18mm 16mm;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 3px solid var(--brand);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -3px;
+      width: 140px;
+      height: 3px;
+      background: var(--accent);
+    }
+
+    .company-block { flex: 1; }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 8px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #fcfaf7 0%, #f4eee4 100%);
+      border: 1px solid #e9decb;
+      overflow: hidden;
+    }
+
+    .logo img { max-width: 92%; max-height: 92%; object-fit: contain; }
+
+    .company-name {
+      font-family: "Palatino Linotype", "Book Antiqua", Garamond, serif;
+      font-size: 23px;
+      font-weight: 700;
+      color: var(--brand);
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .company-details { font-size: 11px; line-height: 1.75; color: #4b5563; }
+
+    .receipt-title { flex: 1; text-align: right; }
+
+    .receipt-title h1 {
+      font-family: "Palatino Linotype", "Book Antiqua", Garamond, serif;
+      font-size: 35px;
+      color: var(--brand);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .status {
+      display: inline-block;
+      background: #e9f8ee;
+      color: var(--success);
+      border: 1px solid #cdeed8;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      margin-bottom: 10px;
+    }
+
+    .meta {
+      background: var(--soft);
+      border: 1px solid #ece5d8;
+      border-radius: 10px;
+      display: inline-block;
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #4b5563;
+      min-width: 280px;
+    }
+
+    .meta p { margin: 4px 0; }
+
+    .date-input {
+      width: 170px;
+      border: 1px solid #d8d3c8;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 12px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, #fdfbf8 0%, #f7f3ec 100%);
+      border: 1px solid #ece3d4;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .card h3 { color: var(--brand); font-size: 13px; margin-bottom: 8px; letter-spacing: 0.4px; }
+    .line { margin-bottom: 7px; font-size: 12px; line-height: 1.5; }
+    .line strong { color: #374151; }
+
+    .payments {
+      border: 1px solid #ebdfcc;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: linear-gradient(135deg, var(--brand) 0%, #9c2f2f 100%); color: #fff; }
+
+    th, td {
+      font-size: 12px;
+      padding: 11px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    tbody tr:nth-child(even) td { background: #fcfbf8; }
+    .text-right { text-align: right; }
+
+    .summary { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+
+    .summary-box {
+      width: 340px;
+      background: #fcfbf8;
+      border: 1px solid #ece4d6;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .sum-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; }
+
+    .sum-row.total {
+      border-top: 2px solid var(--brand);
+      margin-top: 8px;
+      padding-top: 9px;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--brand);
+    }
+
+    .notes {
+      background: linear-gradient(180deg, #fcfaf6 0%, #f7f3eb 100%);
+      border: 1px solid #ece2d2;
+      border-left: 5px solid var(--accent);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .notes h3 { color: var(--brand); font-size: 13px; margin-bottom: 8px; }
+    .notes p { font-size: 12px; line-height: 1.7; }
+
+    .signatures { display: flex; gap: 14px; margin-top: 20px; }
+
+    .sig-box {
+      flex: 1;
+      border: 1px solid #ece4d8;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fdfcf9;
+    }
+
+    .sig-box h4 {
+      color: var(--brand);
+      font-size: 12px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .sig-tools {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .sig-btn {
+      border: 1px solid #d4d4d8;
+      background: #fff;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .sig-area {
+      border: 1px solid #dad6cd;
+      border-radius: 6px;
+      height: 110px;
+      background: #fff;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .sig-canvas {
+      width: 100%;
+      height: 110px;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .sig-sub { color: #6b7280; font-size: 11px; }
+
+    .footer {
+      margin-top: 15px;
+      padding-top: 11px;
+      border-top: 2px solid #ece4d8;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 10px;
+      color: #4b5563;
+    }
+
+    [contenteditable="true"] {
+      outline: none;
+      border-radius: 3px;
+      transition: background-color 0.2s ease;
+      min-height: 16px;
+    }
+
+    .meta span[contenteditable="true"],
+    .line span[contenteditable="true"],
+    #received[contenteditable="true"] {
+      display: inline-block;
+      min-width: 120px;
+    }
+
+    .payments td[contenteditable="true"] {
+      display: table-cell;
+      min-width: 0;
+    }
+
+    [contenteditable="true"]:hover { background: #fff7e7; }
+    [contenteditable="true"]:focus { background: #fff1d4; box-shadow: inset 0 0 0 1px rgba(178, 139, 60, 0.35); }
+
+    .is-placeholder { color: #9ca3af; font-style: italic; }
+
+    input[type="file"] { display: none; }
+
+    @media (max-width: 680px) {
+      .receipt { padding: 7mm 6mm 12mm; border-radius: 10px; }
+      .header, .grid, .signatures, .footer { display: flex; flex-direction: column; }
+      .receipt-title { text-align: left; }
+      .meta { width: 100%; }
+      .summary-box { width: 100%; }
+    }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .controls, .sig-tools, .lang-toggle { display: none !important; }
+
+      .receipt {
+        width: 190mm;
+        margin: 0 auto 0 0;
+        min-height: auto;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 8mm 12mm 10mm;
+        overflow: hidden;
+      }
+
+      .header { margin-bottom: 10px; padding-bottom: 10px; }
+      .logo { width: 88px; height: 88px; margin-bottom: 4px; }
+      .company-name { font-size: 18px; margin-bottom: 3px; }
+      .company-details { font-size: 10px; line-height: 1.5; }
+      .receipt-title h1 { font-size: 26px; margin-bottom: 4px; }
+      .status { font-size: 9px; padding: 2px 8px; margin-bottom: 6px; }
+      .meta { font-size: 10px; padding: 8px 10px; }
+
+      .grid { gap: 8px; margin-bottom: 10px; }
+      .card { padding: 8px; }
+      .card h3 { font-size: 11px; margin-bottom: 6px; }
+      .line { font-size: 10px; margin-bottom: 4px; }
+
+      th, td { font-size: 10px; padding: 7px; }
+      .payments { margin-bottom: 10px; }
+
+      .summary { margin-bottom: 10px; }
+      .summary-box { padding: 8px 10px; }
+      .sum-row { font-size: 11px; padding: 4px 0; }
+      .sum-row.total { font-size: 14px; padding-top: 6px; }
+
+      .notes { padding: 9px; margin-bottom: 10px; }
+      .notes h3 { font-size: 11px; margin-bottom: 5px; }
+      .notes p { font-size: 10px; line-height: 1.45; }
+
+      .signatures { gap: 8px; margin-top: 10px; }
+      .sig-box { padding: 8px; }
+      .sig-box h4 { font-size: 10px; margin-bottom: 5px; }
+      .sig-area, .sig-canvas { height: 72px; }
+      .sig-sub { font-size: 9px; }
+
+      .footer { margin-top: 8px; padding-top: 7px; font-size: 9px; }
+
+      section, .card, .payments, .notes, .signatures, .footer {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      @page { size: A4; margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button class="btn btn-print" onclick="window.print()">Print Receipt</button>
+    <button class="btn btn-reset" onclick="resetReceipt()">Reset</button>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="changeLanguage('en', this)">EN</button>
+      <button class="lang-btn" onclick="changeLanguage('ar', this)">AR</button>
+    </div>
+  </div>
+
+  <main class="receipt">
+    <section class="header">
+      <div class="company-block">
+        <div class="logo">
+          <img src="logo.png" alt="Company Logo" onerror="this.style.display='none'" />
+        </div>
+        <div class="company-name">OMO G TRADING AND INTERIOR DECORATION</div>
+        <div class="company-details">
+          <strong>Qatar Office:</strong> Office 70, 2nd Floor Block E, Al Mirqab Mall, Doha, Qatar<br />
+          <strong>CR No:</strong> 235664
+        </div>
+      </div>
+
+      <div class="receipt-title">
+        <h1>PAYMENT RECEIPT</h1>
+        <span class="status">PAID</span>
+        <div class="meta">
+          <p><strong>Receipt #:</strong> <span id="receiptNo" contenteditable="true" class="editable-placeholder" data-placeholder="RCT-2026-001">RCT-2026-001</span></p>
+          <p><strong>Receipt Date:</strong> <input type="date" id="receiptDateInput" class="date-input" /></p>
+          <p><strong>Invoice Ref:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="INV-2026-001">INV-2026-001</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>RECEIVED FROM</h3>
+        <div class="line"><strong>Name:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="Client Full Name">Client Full Name</span></div>
+        <div class="line"><strong>Company:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="Client Company">Client Company</span></div>
+        <div class="line"><strong>Phone:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="+974 XXXX XXXX">+974 XXXX XXXX</span></div>
+        <div class="line"><strong>Email:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="client@email.com">client@email.com</span></div>
+      </div>
+
+      <div class="card">
+        <h3>PAYMENT DETAILS</h3>
+        <div class="line"><strong>Payment Method:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="Bank Transfer">Bank Transfer</span></div>
+        <div class="line"><strong>Transaction ID:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="TRX-000000">TRX-000000</span></div>
+        <div class="line"><strong>Collected By:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="Accounts Department">Accounts Department</span></div>
+        <div class="line"><strong>Currency:</strong> <span contenteditable="true" class="editable-placeholder" data-placeholder="QAR">QAR</span></div>
+      </div>
+    </section>
+
+    <section class="payments">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 10%">#</th>
+            <th style="width: 42%">Description</th>
+            <th style="width: 16%" class="text-right">Qty</th>
+            <th style="width: 16%" class="text-right">Rate</th>
+            <th style="width: 16%" class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td contenteditable="true" class="editable-placeholder" data-placeholder="1">1</td>
+            <td contenteditable="true" class="editable-placeholder" data-placeholder="Initial payment for interior design package">Initial payment for interior design package</td>
+            <td class="text-right editable-placeholder" contenteditable="true" data-placeholder="1" oninput="recalc()">1</td>
+            <td class="text-right editable-placeholder" contenteditable="true" data-placeholder="0.00" oninput="recalc()">0.00</td>
+            <td class="text-right amount-cell">0.00</td>
+          </tr>
+          <tr>
+            <td contenteditable="true" class="editable-placeholder" data-placeholder="2">2</td>
+            <td contenteditable="true" class="editable-placeholder" data-placeholder="Material and installation charges">Material and installation charges</td>
+            <td class="text-right editable-placeholder" contenteditable="true" data-placeholder="1" oninput="recalc()">1</td>
+            <td class="text-right editable-placeholder" contenteditable="true" data-placeholder="0.00" oninput="recalc()">0.00</td>
+            <td class="text-right amount-cell">0.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="summary">
+      <div class="summary-box">
+        <div class="sum-row">
+          <span>Subtotal:</span>
+          <span><span id="subtotal">0.00</span> QAR</span>
+        </div>
+        <div class="sum-row">
+          <span>Received:</span>
+          <span><span id="received" contenteditable="true" class="editable-placeholder" data-placeholder="0.00" oninput="recalcNet()">0.00</span> QAR</span>
+        </div>
+        <div class="sum-row total">
+          <span>Balance:</span>
+          <span><span id="balance">0.00</span> QAR</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h3>NOTES</h3>
+      <p contenteditable="true" class="editable-placeholder" data-placeholder="This receipt acknowledges payment received against the referenced invoice.">This receipt acknowledges payment received against the referenced invoice.</p>
+    </section>
+
+    <section class="signatures">
+      <div class="sig-box">
+        <h4>FOR OMO G (AUTHORIZED SIGNATORY)</h4>
+        <div class="sig-tools">
+          <button class="sig-btn" onclick="clearSignature('companySignCanvas')">Clear</button>
+          <button class="sig-btn" onclick="document.getElementById('companySignUpload').click()">Upload</button>
+        </div>
+        <div class="sig-area">
+          <canvas id="companySignCanvas" class="sig-canvas"></canvas>
+        </div>
+        <input type="file" id="companySignUpload" accept="image/*" />
+        <div class="sig-sub">Digital Signature</div>
+      </div>
+
+      <div class="sig-box">
+        <h4>RECEIVED BY (CLIENT)</h4>
+        <div class="sig-tools">
+          <button class="sig-btn" onclick="clearSignature('clientSignCanvas')">Clear</button>
+          <button class="sig-btn" onclick="document.getElementById('clientSignUpload').click()">Upload</button>
+        </div>
+        <div class="sig-area">
+          <canvas id="clientSignCanvas" class="sig-canvas"></canvas>
+        </div>
+        <input type="file" id="clientSignUpload" accept="image/*" />
+        <div class="sig-sub">Digital Signature</div>
+      </div>
+    </section>
+
+    <section class="footer">
+      <div>
+        <strong>Contact:</strong> +974 7102 1381 | info@omoginteriors.com
+      </div>
+      <div>
+        <strong>Website:</strong> www.omoginteriors.com
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const originalReceipt = document.querySelector('.receipt').innerHTML;
+    const signaturePads = {};
+    let currentLanguage = 'en';
+    const textNodeEnglishCache = new WeakMap();
+    let translationWarningShown = false;
+
+    function parseNumber(text) {
+      return parseFloat(String(text).replace(/,/g, '').trim()) || 0;
+    }
+
+    function format2(n) {
+      return n.toFixed(2);
+    }
+
+    function setDateDefault() {
+      const d = new Date();
+      const dateInput = document.getElementById('receiptDateInput');
+      if (dateInput) {
+        dateInput.value = d.toISOString().split('T')[0];
+      }
+    }
+
+    function setupEditablePlaceholders() {
+      const fields = document.querySelectorAll('.editable-placeholder[contenteditable="true"]');
+
+      fields.forEach(field => {
+        const placeholder = field.getAttribute('data-placeholder') || '';
+        if (field.textContent.trim() === placeholder) {
+          field.classList.add('is-placeholder');
+        }
+
+        field.addEventListener('focus', function () {
+          if (this.textContent.trim() === placeholder) {
+            this.textContent = '';
+          }
+          this.classList.remove('is-placeholder');
+        });
+
+        field.addEventListener('blur', function () {
+          if (this.textContent.trim() === '') {
+            this.textContent = placeholder;
+            this.classList.add('is-placeholder');
+          }
+        });
+      });
+    }
+
+    function setupSignaturePad(canvasId, uploadId) {
+      const canvas = document.getElementById(canvasId);
+      const uploadInput = document.getElementById(uploadId);
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = 110;
+
+      let drawing = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      function start(x, y) {
+        drawing = true;
+        lastX = x;
+        lastY = y;
+      }
+
+      function draw(x, y) {
+        if (!drawing) return;
+        ctx.strokeStyle = '#111827';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastX = x;
+        lastY = y;
+      }
+
+      function stop() { drawing = false; }
+
+      canvas.addEventListener('mousedown', e => {
+        const r = canvas.getBoundingClientRect();
+        start(e.clientX - r.left, e.clientY - r.top);
+      });
+
+      canvas.addEventListener('mousemove', e => {
+        const r = canvas.getBoundingClientRect();
+        draw(e.clientX - r.left, e.clientY - r.top);
+      });
+
+      canvas.addEventListener('mouseup', stop);
+      canvas.addEventListener('mouseleave', stop);
+
+      canvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        const t = e.touches[0];
+        const r = canvas.getBoundingClientRect();
+        start(t.clientX - r.left, t.clientY - r.top);
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!drawing) return;
+        const t = e.touches[0];
+        const r = canvas.getBoundingClientRect();
+        draw(t.clientX - r.left, t.clientY - r.top);
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', stop);
+
+      if (uploadInput) {
+        uploadInput.addEventListener('change', e => {
+          const file = e.target.files[0];
+          if (!file || !file.type.startsWith('image/')) return;
+          const reader = new FileReader();
+          reader.onload = evt => {
+            const img = new Image();
+            img.onload = () => {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+              const w = img.width * scale;
+              const h = img.height * scale;
+              const x = (canvas.width - w) / 2;
+              const y = (canvas.height - h) / 2;
+              ctx.drawImage(img, x, y, w, h);
+            };
+            img.src = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      signaturePads[canvasId] = { canvas, ctx };
+    }
+
+    function clearSignature(canvasId) {
+      const pad = signaturePads[canvasId];
+      if (!pad) return;
+      pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
+    }
+
+    function isTextSkippable(text) {
+      const t = String(text || '').trim();
+      if (!t) return true;
+      if (!/[A-Za-z]/.test(t)) return true;
+      if (/^[\d\s.,/%\-+:()[\]|]+$/.test(t)) return true;
+      if (/^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(t)) return true;
+      if (/^(www\.|https?:\/\/)/i.test(t)) return true;
+      if (/^@[\w.]+$/.test(t)) return true;
+      if (/^(INV|RCT)-\d/i.test(t)) return true;
+      if (/^QAR$/i.test(t)) return true;
+      return false;
+    }
+
+    function shouldSkipNode(node) {
+      const parent = node.parentElement;
+      if (!parent) return true;
+      if (parent.closest('script, style')) return true;
+      if (parent.closest('.lang-toggle')) return true;
+      return false;
+    }
+
+    function collectTranslatableTextNodes() {
+      const root = document.querySelector('.receipt');
+      const nodes = [];
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (shouldSkipNode(node)) continue;
+        if (isTextSkippable(node.nodeValue)) continue;
+        nodes.push(node);
+      }
+      return nodes;
+    }
+
+    async function translateTextOnline(text, fromLang, toLang) {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(fromLang)}&tl=${encodeURIComponent(toLang)}&dt=t&q=${encodeURIComponent(text)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Translation request failed');
+      const data = await response.json();
+      if (!Array.isArray(data) || !Array.isArray(data[0])) return text;
+      return data[0].map(part => part[0]).join('');
+    }
+
+    async function translateTextList(textList, fromLang, toLang) {
+      const translatedMap = new Map();
+      const unique = [...new Set(textList)];
+      for (const text of unique) {
+        try {
+          translatedMap.set(text, await translateTextOnline(text, fromLang, toLang));
+        } catch (err) {
+          translatedMap.set(text, text);
+          if (!translationWarningShown) {
+            translationWarningShown = true;
+            alert('Live translation could not reach the translation service. Check internet connection and try again.');
+          }
+        }
+      }
+      return textList.map(text => translatedMap.get(text) || text);
+    }
+
+    async function translateWholeReceiptToArabic() {
+      const editableElements = Array.from(document.querySelectorAll('.receipt [contenteditable=\"true\"]'));
+      const editableTexts = [];
+
+      editableElements.forEach(el => {
+        const current = el.textContent.trim();
+        if (!el.hasAttribute('data-en-content')) {
+          el.setAttribute('data-en-content', current);
+        }
+        const source = el.getAttribute('data-en-content') || current;
+        editableTexts.push(source);
+      });
+
+      const editableTranslated = await translateTextList(editableTexts, 'en', 'ar');
+      editableElements.forEach((el, idx) => {
+        const source = editableTexts[idx];
+        el.textContent = isTextSkippable(source) ? source : editableTranslated[idx];
+      });
+
+      const textNodes = collectTranslatableTextNodes();
+      const nodeSourceTexts = [];
+      textNodes.forEach(node => {
+        if (!textNodeEnglishCache.has(node)) {
+          textNodeEnglishCache.set(node, node.nodeValue);
+        }
+        nodeSourceTexts.push((textNodeEnglishCache.get(node) || '').trim());
+      });
+
+      const nodeTranslated = await translateTextList(nodeSourceTexts, 'en', 'ar');
+      textNodes.forEach((node, idx) => {
+        const original = textNodeEnglishCache.get(node) || node.nodeValue;
+        if (!isTextSkippable(original)) {
+          const leading = (original.match(/^\s*/) || [''])[0];
+          const trailing = (original.match(/\s*$/) || [''])[0];
+          node.nodeValue = leading + nodeTranslated[idx] + trailing;
+        }
+      });
+    }
+
+    function restoreWholeReceiptToEnglish() {
+      document.querySelectorAll('.receipt [contenteditable=\"true\"]').forEach(field => {
+        if (field.hasAttribute('data-en-content')) {
+          field.textContent = field.getAttribute('data-en-content');
+        }
+      });
+
+      const root = document.querySelector('.receipt');
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (textNodeEnglishCache.has(node)) {
+          node.nodeValue = textNodeEnglishCache.get(node);
+        }
+      }
+    }
+
+    async function changeLanguage(lang, buttonEl) {
+      currentLanguage = lang;
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+      if (buttonEl) buttonEl.classList.add('active');
+
+      if (lang === 'ar') {
+        document.body.classList.add('rtl');
+        await translateWholeReceiptToArabic();
+      } else {
+        document.body.classList.remove('rtl');
+        restoreWholeReceiptToEnglish();
+      }
+    }
+
+    function recalc() {
+      const rows = document.querySelectorAll('.payments tbody tr');
+      let subtotal = 0;
+
+      rows.forEach(row => {
+        const qty = parseNumber(row.cells[2].textContent);
+        const rate = parseNumber(row.cells[3].textContent);
+        const amt = qty * rate;
+        row.querySelector('.amount-cell').textContent = format2(amt);
+        subtotal += amt;
+      });
+
+      document.getElementById('subtotal').textContent = format2(subtotal);
+      recalcNet();
+    }
+
+    function recalcNet() {
+      const subtotal = parseNumber(document.getElementById('subtotal').textContent);
+      const received = parseNumber(document.getElementById('received').textContent);
+      const balance = subtotal - received;
+      document.getElementById('balance').textContent = format2(balance);
+    }
+
+    function resetReceipt() {
+      if (!confirm('Reset this receipt to default template?')) return;
+      document.querySelector('.receipt').innerHTML = originalReceipt;
+      initReceipt();
+      if (currentLanguage === 'ar') {
+        const arBtn = document.querySelector('.lang-btn:nth-child(2)');
+        changeLanguage('ar', arBtn);
+      }
+    }
+
+    function initReceipt() {
+      setDateDefault();
+      setupEditablePlaceholders();
+      setupSignaturePad('companySignCanvas', 'companySignUpload');
+      setupSignaturePad('clientSignCanvas', 'clientSignUpload');
+      recalc();
+    }
+
+    document.addEventListener('DOMContentLoaded', initReceipt);
+  </script>
+</body>
+</html>
